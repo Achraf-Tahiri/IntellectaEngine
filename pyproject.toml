@@ -1,0 +1,86 @@
+[build-system]
+requires = ["setuptools==84.0.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "intellectaengine"
+version = "0.1.0"
+description = "A multi-source AI assistant with PDF retrieval, SQL querying, and web research."
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+license = "MIT"
+license-files = ["LICENSE", "THIRD_PARTY_NOTICES.md"]
+dependencies = [
+    "streamlit>=1.41.1,<2",
+    "pydantic>=2.10,<3",
+    "pydantic-settings>=2.7,<3",
+    "langchain-classic>=1.0.8,<2",
+    "langchain-core>=1.4,<2",
+    "langchain-community==0.4.2",
+    "langchain-text-splitters>=1.1.2,<2",
+    "langchain-google-genai==2.1.11",
+    "langchain-groq>=1.1.2,<2",
+    "langchain-openai>=1.2.2,<2",
+    "langchain-ollama>=1.1.0,<2",
+    "sentence-transformers>=5,<6",
+    "torch>=2.8,<3",
+    "fastembed>=0.5,<1",
+    "chromadb>=1.0.9,<2",
+    "langchain-chroma>=1.1.0,<2",
+    "pypdf>=5.1,<7",
+    "SQLAlchemy>=2.0.36,<3",
+    "duckduckgo-search>=7.0.1,<8",
+    "requests>=2.32.5,<3",
+]
+
+[project.scripts]
+intellectaengine = "intellectaengine.streamlit_app:launch"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+include-package-data = false
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["intellectaengine", "intellectaengine.*"]
+namespaces = false
+
+[tool.setuptools.package-data]
+intellectaengine = ["assets/Chinook.db"]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3,<10",
+    "pytest-socket>=0.7,<1",
+    "ruff>=0.12,<1",
+    "pip-audit>=2.9,<3",
+]
+
+[tool.uv]
+required-version = "==0.12.2"
+# Transformers 4.x has published advisories. Keep its transitive resolution on
+# the patched 5.x line without making it an application-level direct dependency.
+constraint-dependencies = ["transformers>=5.10,<6"]
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
+[tool.uv.sources]
+torch = [{ index = "pytorch-cpu", marker = "sys_platform == 'linux' or sys_platform == 'win32'" }]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+# Streamlit's test harness uses an asyncio Unix socket pair internally.
+# AF_INET/AF_INET6 connections remain blocked.
+addopts = "-ra --strict-markers --disable-socket --allow-unix-socket"
+markers = ["integration: local dependency and application smoke checks"]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+
+[tool.ruff.lint]
+# Establish correctness checks first; broad style cleanup belongs to a later phase.
+select = ["E9", "F63", "F7", "F82"]

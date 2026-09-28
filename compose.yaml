@@ -1,0 +1,19 @@
+services:
+  app:
+    build: .
+    image: intellectaengine:local
+    platform: linux/amd64
+    ports:
+      - "127.0.0.1:8501:8501"
+    # Optional, operator-created file. No automatic use of the checkout's .env.
+    env_file:
+      - path: ./container.env
+        required: false
+    volumes:
+      - chroma:/data/chroma
+      - models:/home/app/.cache
+    stop_grace_period: 20s
+
+volumes:
+  chroma:
+  models:

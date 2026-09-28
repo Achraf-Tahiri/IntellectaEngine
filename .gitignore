@@ -1,0 +1,92 @@
+# =============================================
+# IntellectaEngine — .gitignore
+# =============================================
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+*.pyo
+*.pyd
+
+# Environment
+.env
+.env.*
+*.env
+!.env.example
+
+# Virtual environments
+venv/
+.venv/
+env/
+ENV/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Streamlit
+.streamlit/secrets.toml
+
+# Local credentials, caches, and agent state
+.aws/
+.ssh/
+.cache/
+.agents/
+.codex/
+
+# Downloaded model artifacts (curated PDF/PNG examples remain eligible)
+*.safetensors
+*.gguf
+*.ggml
+*.onnx
+*.pt
+*.pth
+pytorch_model*.bin
+
+# Data & Vector Stores
+data/
+uploads/
+cache/
+models/
+*.db
+*.sqlite
+*.sqlite3
+*-wal
+*-shm
+*.db-journal
+!src/intellectaengine/assets/Chinook.db
+
+# Logs
+*.log
+logs/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Test and analysis output
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage*
+htmlcov/
+coverage.xml
+junit.xml
+
+# Local exports (curated examples and screenshots live outside this directory)
+exports/
+
+# Temporary files
+tmp/
+temp/
+*.tmp

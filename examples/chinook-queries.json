@@ -1,0 +1,17 @@
+[
+  {
+    "question": "How many invoices are recorded, and what is their total value?",
+    "sql": "SELECT COUNT(*) AS invoices, ROUND(SUM(Total), 2) AS total FROM Invoice",
+    "expected": "(412, 2328.6)"
+  },
+  {
+    "question": "Which three billing countries have the highest invoice totals?",
+    "sql": "SELECT BillingCountry, ROUND(SUM(Total), 2) AS total FROM Invoice GROUP BY BillingCountry ORDER BY total DESC, BillingCountry LIMIT 3",
+    "expected": "('USA', 523.06)\n('Canada', 303.96)\n('France', 195.1)"
+  },
+  {
+    "question": "Which three genres contain the most tracks?",
+    "sql": "SELECT g.Name, COUNT(*) AS tracks FROM Track AS t JOIN Genre AS g ON g.GenreId = t.GenreId GROUP BY g.GenreId, g.Name ORDER BY tracks DESC, g.Name LIMIT 3",
+    "expected": "('Rock', 1297)\n('Latin', 579)\n('Metal', 374)"
+  }
+]

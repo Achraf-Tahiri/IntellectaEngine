@@ -1,0 +1,2 @@
+# Preserve the curated PDF bytes and classify it as binary for Git checks.
+examples/field-notes.pdf binary

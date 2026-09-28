@@ -1,0 +1,25 @@
+Lumen Library | Pilot brief
+Fictional source material for IntellectaEngine
+
+Purpose
+The Lumen Library pilot tests a lending desk for reusable activity kits. All organizations, events and figures in this brief are invented for a software demonstration.
+
+Schedule and scope
+The pilot runs for six weeks, from 5 April to 16 May 2027. It uses 24 kits: 10 drawing kits, 8 puzzle kits and 6 building kits. The desk opens on Tuesdays and Saturdays, from 14:00 to 18:00.
+
+Loan rules
+Each kit can be borrowed for seven days. A borrower may hold one kit at a time. Returns go through a contents check before the kit becomes available again. A kit with missing pieces is held for repair rather than returned to the shelf.
+
+---
+
+Lumen Library | Review notes
+Fictional source material for IntellectaEngine
+
+Week-three snapshot
+The pilot recorded 36 completed loans by the end of week three. Drawing kits accounted for 18 loans, puzzle kits for 12 and building kits for 6. Of the 36 returns, 33 were on time and 3 were late.
+
+Review decision
+Two kits were held for repair at the week-three review. The team kept the seven-day loan period unchanged and added a contents checklist at checkout. The next review is scheduled for 3 May 2027.
+
+Measures and scope
+The pilot measures completed loans, on-time returns and repair holds. These are counts for this fictional pilot only; they are not performance measurements of IntellectaEngine. This brief does not set a budget or estimate operating costs.

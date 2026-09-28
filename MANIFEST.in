@@ -1,0 +1,15 @@
+include pyproject.toml MANIFEST.in README.md LICENSE THIRD_PARTY_NOTICES.md
+include app.py .env.example .python-version uv.lock requirements.txt requirements-dev.txt
+include .streamlit/config.toml .gitignore .gitattributes .github/workflows/ci.yml
+include Dockerfile .dockerignore compose.yaml
+recursive-include src/intellectaengine *.py
+include src/intellectaengine/assets/Chinook.db
+recursive-include tests *.py
+recursive-include docs *.md
+recursive-include scripts *.py
+# Curated Phase 9 assets ship in the sdist for working docs/tests, never the wheel.
+include examples/README.md examples/field-notes.txt examples/field-notes.pdf
+include examples/chinook-queries.json
+include docs/screenshots/overview.png docs/screenshots/chinook-schema.png
+include scripts/capture_demo.cjs
+global-exclude __pycache__ *.py[cod]
