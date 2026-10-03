@@ -4,11 +4,11 @@ import pytest
 
 
 MODES = {
-    "auto": "🔄 Auto (Router decides)",
-    "rag": "📄 Force: RAG Documents",
-    "sql": "🗄️ Force: SQL Database",
-    "web": "🌐 Force: Web Research",
-    "chat": "💬 Force: Direct Chat",
+    "auto": "auto",
+    "rag": "rag",
+    "sql": "sql",
+    "web": "web",
+    "chat": "chat",
 }
 
 
@@ -99,7 +99,7 @@ def test_all_modes_commit_final_turn_once(app, fake_model, monkeypatch, mode):
     if mode == "sql":
         app.session_state[K.KEY_DB_CONNECTED] = True
         app.session_state[K.KEY_DB_URI] = "USE_SAMPLE_DB"
-    app.radio[0].set_value(MODES[mode]).run()
+    app.selectbox(key=K.KEY_AGENT_MODE).set_value(MODES[mode]).run()
     submit(app, "original question")
     assert_history(app, ["original question", "final reply"])
     app.run()  # A Streamlit rerun must not replay or duplicate a committed request.
@@ -112,7 +112,7 @@ def test_all_modes_commit_final_turn_once(app, fake_model, monkeypatch, mode):
     # Switching to chat must see the final answer from every previous mode.
     prompts.clear()
     fake_model(["follow-up reply"])
-    app.radio[0].set_value(MODES["chat"]).run()
+    app.selectbox(key=K.KEY_AGENT_MODE).set_value(MODES["chat"]).run()
     submit(app, "follow-up")
     assert "original question" in prompts[-1]
     assert "final reply" in prompts[-1]
@@ -127,28 +127,28 @@ def test_sidebar_edits_and_two_real_sessions(app, project_root, fake_model):
     from intellectaengine.ui.session_state import SessionStateManager as K
 
     prompts = fake_model(["first answer", "second answer", "after clear"])
-    app.radio[0].set_value(MODES["chat"]).run()
+    app.selectbox(key=K.KEY_AGENT_MODE).set_value(MODES["chat"]).run()
     submit(app, "first question")
     submit(app, "second question")
     other = AppTest.from_file(str(project_root / "app.py")).run(timeout=60)
     assert_history(other, [])
-    other.radio[0].set_value(MODES["chat"]).run()
+    other.selectbox(key=K.KEY_AGENT_MODE).set_value(MODES["chat"]).run()
     submit(other, "other session question")
     assert "first question" not in prompts[-1]
     assert "second question" not in prompts[-1]
     other_history = [item["content"] for item in other.session_state[K.KEY_CHAT_MESSAGES]]
     original_id = app.session_state[K.KEY_SESSION_ID]
     assert original_id != other.session_state[K.KEY_SESSION_ID]
-    button(app, "↩️ Undo").click().run()
+    button(app, "Undo").click().run()
     assert_history(app, ["first question", "first answer"])
-    button(app, "🧹 Clear").click().run()
+    button(app, "Clear chat").click().run()
     assert_history(app, [])
     assert app.session_state[K.KEY_SESSION_ID] == original_id
     submit(app, "fresh question")
     assert "first question" not in prompts[-1]
     assert "second question" not in prompts[-1]
     old_memory = app.session_state[K.KEY_MEMORY]
-    button(app, "🔄 Reset").click().run()
+    button(app, "Reset workspace").click().run()
     assert_history(app, [])
     assert old_memory.get_history() == []
     assert app.session_state[K.KEY_SESSION_ID] != original_id
@@ -181,14 +181,14 @@ def test_failed_requests_record_displayed_reply_once(app, fake_model, monkeypatc
         mode = "web"
     else:
         mode = "rag" if failure == "missing_rag" else "sql"
-    app.radio[0].set_value(MODES[mode]).run()
+    app.selectbox(key=K.KEY_AGENT_MODE).set_value(MODES[mode]).run()
     submit(app, "failing question")
     reply = app.session_state[K.KEY_CHAT_MESSAGES][-1]["content"]
     assert "⚠️" in reply
     assert_history(app, ["failing question", reply])
     app.run()
     assert_history(app, ["failing question", reply])
-    button(app, "↩️ Undo").click().run()
+    button(app, "Undo").click().run()
     assert_history(app, [])
 
 
@@ -203,13 +203,15 @@ def test_direct_fallback_only_persists_final_ui_reply(app, fake_model, monkeypat
 
 @pytest.mark.parametrize("mode", ["auto", "chat"])
 def test_model_receives_only_the_window_after_undo(app, fake_model, mode):
+    from intellectaengine.ui.session_state import SessionStateManager as K
+
     prompts = fake_model(["reply"])
-    app.radio[0].set_value(MODES["chat"]).run()
+    app.selectbox(key=K.KEY_AGENT_MODE).set_value(MODES["chat"]).run()
     for number in range(12):
         submit(app, f"question-{number:02d}")
-    button(app, "↩️ Undo").click().run()
+    button(app, "Undo").click().run()
     fake_model(["Final Answer: next reply" if mode == "auto" else "next reply"])
-    app.radio[0].set_value(MODES[mode]).run()
+    app.selectbox(key=K.KEY_AGENT_MODE).set_value(MODES[mode]).run()
     submit(app, "next question")
     prompt = prompts[-1]
     assert "question-00" not in prompt  # Outside the window.
@@ -249,7 +251,7 @@ def test_executor_failure_after_tool_does_not_commit_observation(app, fake_model
     assert_history(app, ["original question", reply])
     monkeypatch.setattr(type(model), "_call", original_call)
     fake_model(["recovered"])
-    app.radio[0].set_value(MODES["chat"]).run()
+    app.selectbox(key=K.KEY_AGENT_MODE).set_value(MODES["chat"]).run()
     submit(app, "retry")
     assert "private intermediate observation" not in prompts[-1]
     assert "internal question" not in prompts[-1]
@@ -280,11 +282,11 @@ def test_automatic_tool_failure_is_safe_and_undoable(app, fake_model, monkeypatc
     assert_history(app, ["original question", reply])
     app.run()
     assert_history(app, ["original question", reply])
-    button(app, "↩️ Undo").click().run()
+    button(app, "Undo").click().run()
     assert_history(app, [])
 
 
-@pytest.mark.parametrize("action", ["🗑️", "🔄 Reset"])
+@pytest.mark.parametrize("action", ["Clear", "Reset workspace"])
 @pytest.mark.parametrize("failure", [None, "client", "lookup", "delete", "verification"])
 def test_pdf_clear_reset_preserve_handles_until_deletion_proven(
     app, tmp_path, monkeypatch, action, failure
@@ -345,7 +347,7 @@ def test_pdf_clear_reset_preserve_handles_until_deletion_proven(
     assert app.session_state[K.KEY_VECTOR_STORE] is None
     assert app.session_state[K.KEY_PDF_NAMES] == []
     assert client.list_collections() == []
-    if action == "🔄 Reset":
+    if action == "Reset workspace":
         assert app.session_state[K.KEY_SESSION_ID] != original_session
 
 
@@ -375,7 +377,7 @@ def test_real_web_boundaries_commit_once_and_undo(
             pytest.fail("Forced web constructed an LLM")
 
         monkeypatch.setattr(LLMFactory, "create", forbidden)
-    app.radio[0].set_value(MODES[mode]).run()
+    app.selectbox(key=K.KEY_AGENT_MODE).set_value(MODES[mode]).run()
     submit(app, query)
     transcript = app.session_state[K.KEY_CHAT_MESSAGES]
     answer = transcript[-1]["content"]
@@ -394,5 +396,5 @@ def test_real_web_boundaries_commit_once_and_undo(
     assert web_search.closed == (0 if scrape else 1)
     app.run()
     assert_history(app, [query, answer])
-    button(app, "↩️ Undo").click().run()
+    button(app, "Undo").click().run()
     assert_history(app, [])

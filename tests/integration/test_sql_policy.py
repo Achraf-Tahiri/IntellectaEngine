@@ -451,7 +451,7 @@ def test_sql_native_tool_calls_commit_exactly_once_in_ui(
     app.session_state[K.KEY_DB_URI] = uri
     app.session_state[K.KEY_DB_CONNECTED] = True
     if mode == "sql":
-        app.radio[0].set_value("🗄️ Force: SQL Database").run()
+        app.selectbox(key=K.KEY_AGENT_MODE).set_value("sql").run()
     app.chat_input[0].set_value("first artist").run(timeout=60)
     assert not app.exception
     transcript = app.session_state[K.KEY_CHAT_MESSAGES]
@@ -470,7 +470,7 @@ def test_sql_native_tool_calls_commit_exactly_once_in_ui(
         assert len(incoming) == (2 if mode == "auto" else 1)
     app.run()
     assert len(app.session_state[K.KEY_CHAT_MESSAGES]) == 2
-    next(b for b in app.button if b.label == "↩️ Undo").click().run()
+    next(b for b in app.button if b.label == "Undo").click().run()
     assert app.session_state[K.KEY_CHAT_MESSAGES] == []
     assert app.session_state[K.KEY_MEMORY].get_history() == []
 

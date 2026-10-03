@@ -36,27 +36,36 @@ logger = logging.getLogger(__name__)
 
 K = SessionStateManager  # Alias for brevity
 
-# Map tool names to display badges HTML
-_TOOL_BADGE_MAP: dict[str, str] = {
-    "rag_document_search": '<span class="tool-badge tool-badge-rag">📄 RAG</span>',
-    "sql_database_query": '<span class="tool-badge tool-badge-sql">🗄️ SQL</span>',
-    "web_research": '<span class="tool-badge tool-badge-web">🌐 Web</span>',
-    "general_chat": '<span class="tool-badge tool-badge-chat">💬 Chat</span>',
-    "chat_direct": '<span class="tool-badge tool-badge-chat">💬 Chat</span>',
-    "unknown": '<span class="tool-badge tool-badge-error">❓ Unknown</span>',
-    "—": "",
+# Only static, application-owned strings are rendered as badge HTML.
+_TOOL_BADGE_MAP = {
+    "rag_document_search": '<span class="tool-badge">PDF retrieval</span>',
+    "sql_database_query": '<span class="tool-badge">SQLite query</span>',
+    "web_research": '<span class="tool-badge">Web research</span>',
+    "general_chat": '<span class="tool-badge">Direct chat</span>',
+    "chat_direct": '<span class="tool-badge">Direct chat</span>',
 }
 
-# Welcome message shown before any conversation begins
-_WELCOME_MESSAGE: str = (
-    "👋 **Welcome to IntellectaEngine!**\n\n"
-    "I'm your unified AI research assistant. Here's what I can do:\n\n"
-    "- 📄 **Answer questions from your PDFs** — Upload documents in the sidebar, "
-    "then ask anything about their contents.\n"
-    "- 🗄️ **Query SQL databases** — Connect a database and ask questions in plain English.\n"
-    "- 🌐 **Search the web** — Ask about recent events or live data.\n"
-    "- 💬 **General conversation** — Explain concepts, write code, brainstorm ideas.\n\n"
-    "*The router agent automatically selects the best tool for each question.*"
+_STARTERS = (
+    (
+        "PDF documents",
+        "Upload and process PDFs in Sources before asking.",
+        "Summarize the key findings in my uploaded documents.",
+    ),
+    (
+        "SQLite analysis",
+        "Connect the Chinook sample database in Sources.",
+        "Which three billing countries have the highest invoice totals?",
+    ),
+    (
+        "Web research",
+        "Choose Web research to search without an LLM.",
+        "SQLite window functions documentation",
+    ),
+    (
+        "Direct conversation",
+        "Choose a provider and model in Model settings.",
+        "Explain when retrieval-augmented generation is useful.",
+    ),
 )
 
 
@@ -105,8 +114,35 @@ class ChatInterface:
     @staticmethod
     def _render_welcome() -> None:
         """Render the welcome info panel when no messages exist."""
-        with st.chat_message("assistant", avatar="🧠"):
-            st.markdown(_WELCOME_MESSAGE)
+        st.markdown(
+            '<section class="ie-welcome"><div class="ie-eyebrow">A place to connect the dots</div>'
+            '<h1>Your sources.<br><span class="ie-accent">One conversation.</span></h1>'
+            "<p>Explore documents, query your data, and research the web in one workspace. "
+            "Choose a source to get started, or let the agent find the right tool.</p></section>",
+            unsafe_allow_html=True,
+        )
+        for row in range(2):
+            columns = st.columns(2)
+            for index, column in enumerate(columns):
+                title, guidance, prompt = _STARTERS[row * 2 + index]
+                with column, st.container(border=True, key=f"starter_{row}_{index}"):
+                    st.markdown(f"### {title}")
+                    st.caption(guidance)
+                    st.button(
+                        prompt,
+                        key=f"prompt_{row}_{index}",
+                        use_container_width=True,
+                        on_click=ChatInterface._prefill_prompt,
+                        args=(prompt,),
+                        help="Add this example to the input. Edit it, then send when ready.",
+                    )
+        st.caption(
+            "Examples fill the input only. Review your source and answer mode before sending."
+        )
+
+    @staticmethod
+    def _prefill_prompt(prompt: str) -> None:
+        st.session_state[K.KEY_CHAT_DRAFT] = prompt
 
     @staticmethod
     def _render_message(msg: dict) -> None:
@@ -121,7 +157,7 @@ class ChatInterface:
         content: str = msg.get("content", "")
         tool: str = msg.get("tool", "—")
 
-        avatar = "👤" if role == "user" else "🧠"
+        avatar = ":material/person:" if role == "user" else ":material/hub:"
 
         with st.chat_message(role, avatar=avatar):
             if role == "assistant" and tool and tool != "—":
@@ -130,11 +166,15 @@ class ChatInterface:
                     st.markdown(badge_html, unsafe_allow_html=True)
             st.markdown(content)
             if role == "assistant" and msg.get("sources"):
-                st.caption("Retrieved sources (context locations; not claim verification):")
-                for source in msg["sources"]:
-                    name = getattr(source, "source", None) or "Source metadata unavailable"
-                    page = getattr(source, "page", None)
-                    st.caption(f"• {name}{f' (p. {page})' if page is not None else ''}")
+                with st.expander(f"Retrieved sources ({len(msg['sources'])})"):
+                    st.caption(
+                        "Context supplied to the model; these references do not verify every claim."
+                    )
+                    for source in msg["sources"]:
+                        name = getattr(source, "source", None) or "Source metadata unavailable"
+                        page = getattr(source, "page", None)
+                        # Treat uploaded filenames as text, not Markdown links or HTML.
+                        st.text(f"{name}{f' · page {page}' if page is not None else ''}")
 
     @classmethod
     def _render_input_box(cls) -> None:
@@ -153,27 +193,40 @@ class ChatInterface:
         model = st.session_state.get(K.KEY_LLM_MODEL)
 
         is_ready = bool(model) or st.session_state.get(K.KEY_AGENT_MODE) == "web"
+        mode = st.session_state.get(K.KEY_AGENT_MODE, "auto")
+        placeholders = {
+            "auto": "Ask a question across your sources…",
+            "rag": "Ask about your active PDFs…",
+            "sql": "Ask about your connected database…",
+            "web": "Search the public web…",
+            "chat": "Message your selected model…",
+        }
         placeholder = (
-            "⚡ Ask anything — the agent will choose the right tool…"
-            if is_ready
-            else "⚠️ Select an LLM provider and model in the sidebar first."
+            placeholders[mode] if is_ready else "Choose a model in Model settings to begin."
         )
 
         user_query: str | None = st.chat_input(
             placeholder=placeholder,
             disabled=not is_ready,
+            key=K.KEY_CHAT_DRAFT,
         )
 
         if not user_query:
             return
 
         # Immediately display the user message
-        with st.chat_message("user", avatar="👤"):
+        with st.chat_message("user", avatar=":material/person:"):
             st.markdown(user_query)
 
         # Invoke the router agent
-        with st.chat_message("assistant", avatar="🧠"):
-            with st.spinner("🔄 Routing query to the best tool…"):
+        with st.chat_message("assistant", avatar=":material/hub:"):
+            with st.spinner(
+                "Choosing a tool and preparing a response…"
+                if mode == "auto"
+                else "Searching the web…"
+                if mode == "web"
+                else "Preparing a response…"
+            ):
                 try:
                     context = cls._build_agent_context()
                     agent_mode = st.session_state.get(K.KEY_AGENT_MODE, "auto")

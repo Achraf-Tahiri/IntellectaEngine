@@ -37,6 +37,7 @@ from intellectaengine.core.embedding_factory import EmbeddingFactory
 from intellectaengine.core.contracts import AgentResult, ApplicationError, ErrorCode
 from intellectaengine.core.llm_factory import LLMFactory
 from intellectaengine.ui.session_state import SessionStateManager
+from intellectaengine.ui.layout import MODE_LABELS
 
 logger = logging.getLogger(__name__)
 
@@ -62,99 +63,42 @@ class SidebarRenderer:
         """
         Render the complete sidebar content in logical section order.
 
-        Sections rendered (top to bottom):
-            1. Branding / logo lockup
-            2. LLM Provider & Model selection
-            3. Embedding Provider selection
-            4. Agent Mode selector
-            5. PDF Upload panel
-            6. SQL Database connection panel
-            7. Utility actions (reset / clear / undo)
-            8. System status metrics
+        Sources and model settings stay mounted inside native expanders, so
+        collapsing a panel does not discard its widget state.
 
         Example:
             >>> with st.sidebar:
             ...     SidebarRenderer.render()
         """
         cls._render_branding()
-        st.markdown("---")
-        cls._render_llm_section()
-        st.markdown("---")
         cls._render_agent_mode_section()
-        st.markdown("---")
-        cls._render_pdf_section()
-        st.markdown("---")
-        cls._render_sql_section()
-        st.markdown("---")
+        st.markdown("#### Sources")
+        with st.expander("PDF documents", icon=":material/description:"):
+            cls._render_pdf_section()
+        with st.expander("SQLite database", icon=":material/database:"):
+            cls._render_sql_section()
+        with st.expander("Model settings", icon=":material/tune:"):
+            cls._render_llm_section()
+        st.divider()
         cls._render_utilities_section()
-        st.markdown("---")
-        cls._render_status_metrics()
-
-    # ------------------------------------------------------------------
-    # Section renderers
-    # ------------------------------------------------------------------
+        with st.expander("Session details", icon=":material/info:"):
+            cls._render_status_metrics()
 
     @staticmethod
     def _render_branding() -> None:
-        """Render the sidebar logo and tagline with premium styling."""
         st.markdown(
-            """
-        <div style="
-            text-align: center;
-            padding: 1rem 0.5rem 1.25rem;
-            background: linear-gradient(160deg, rgba(139,92,246,0.08), rgba(59,130,246,0.05));
-            border: 1px solid rgba(139,92,246,0.15);
-            border-radius: 16px;
-            margin-bottom: 0.5rem;
-            position: relative;
-            overflow: hidden;
-        ">
-            <div style="
-                position: absolute; inset: 0;
-                background: radial-gradient(circle at 50% 0%, rgba(139,92,246,0.08), transparent 70%);
-                pointer-events: none;
-            "></div>
-            <div style="
-                width: 48px; height: 48px;
-                margin: 0 auto 0.5rem;
-                background: linear-gradient(135deg, rgba(139,92,246,0.18), rgba(59,130,246,0.12));
-                border: 1px solid rgba(139,92,246,0.25);
-                border-radius: 14px;
-                display: flex; align-items: center; justify-content: center;
-                font-size: 1.6rem;
-                box-shadow: 0 0 20px rgba(139,92,246,0.10);
-            ">🧠</div>
-            <h3 style="
-                margin: 0;
-                font-size: 1.05rem;
-                font-weight: 800;
-                background: linear-gradient(135deg, #E2E8F0, #A78BFA, #93C5FD);
-                -webkit-background-clip: text;
-                -webkit-text-fill-color: transparent;
-                background-clip: text;
-                letter-spacing: -0.02em;
-            ">IntellectaEngine</h3>
-            <p style="
-                color: #8492A6;
-                font-size: 0.65rem;
-                margin: 4px 0 0;
-                font-weight: 500;
-                letter-spacing: 0.06em;
-                text-transform: uppercase;
-            ">Knowledge · Intelligence · Insight</p>
-        </div>
-        """,
+            '<div class="ie-brand"><div class="ie-monogram" aria-hidden="true">ie</div>'
+            "<div><strong>IntellectaEngine</strong><small>Multi-source AI assistant</small></div></div>",
             unsafe_allow_html=True,
         )
 
     @staticmethod
     def _render_llm_section() -> None:
         """Render LLM provider, model, and embedding provider selectors."""
-        st.markdown("#### ⚙️ Model Configuration")
 
         # --- Provider ---
         provider = st.selectbox(
-            "🔌 LLM Provider",
+            "LLM provider",
             options=LLMFactory.list_providers(),
             key=K.KEY_LLM_PROVIDER,
             on_change=K.provider_changed,
@@ -163,29 +107,27 @@ class SidebarRenderer:
 
         # --- Model ---
         st.text_input(
-            "🧠 Model",
+            "Model",
             key=K.KEY_LLM_MODEL,
             help="Use the configured default or enter a model identifier available from this provider.",
         )
 
         # API key validation hint
         if provider == "gemini" and not settings.google_api_key:
-            st.warning("⚠️ GOOGLE_API_KEY not set in .env", icon="🔑")
+            st.warning("Set GOOGLE_API_KEY in your environment or .env, then restart the app.")
         elif provider == "groq" and not settings.groq_api_key:
-            st.warning("⚠️ GROQ_API_KEY not set in .env", icon="🔑")
+            st.warning("Set GROQ_API_KEY in your environment or .env, then restart the app.")
         elif provider == "openai" and not settings.openai_api_key:
-            st.warning("⚠️ OPENAI_API_KEY not set in .env", icon="🔑")
+            st.warning("Set OPENAI_API_KEY in your environment or .env, then restart the app.")
         elif provider == "ollama":
             st.info(
-                "🖥️ Ollama uses the configured local server.",
+                "Ollama uses your configured server. Availability is checked on request.",
                 icon="ℹ️",
             )
 
-        st.markdown("&nbsp;")
-
         # --- Embedding provider ---
         st.selectbox(
-            "📐 Embedding Provider",
+            "Embedding provider",
             options=EmbeddingFactory.list_providers(),
             key=K.KEY_EMBEDDING_PROVIDER,
             help=(
@@ -197,38 +139,26 @@ class SidebarRenderer:
     @staticmethod
     def _render_agent_mode_section() -> None:
         """Render the agent routing mode selector."""
-        st.markdown("#### 🤖 Agent Routing Mode")
-
-        mode_options = {
-            "auto": "🔄 Auto (Router decides)",
-            "rag": "📄 Force: RAG Documents",
-            "sql": "🗄️ Force: SQL Database",
-            "web": "🌐 Force: Web Research",
-            "chat": "💬 Force: Direct Chat",
-        }
-
-        current_mode = st.session_state.get(K.KEY_AGENT_MODE, "auto")
-        selected_label = st.radio(
-            "Routing Strategy",
-            options=list(mode_options.values()),
-            index=list(mode_options.keys()).index(current_mode),
-            label_visibility="collapsed",
-            help=(
-                "Auto mode lets the router agent decide which tool to use "
-                "based on your query. Force modes bypass the router."
-            ),
+        st.selectbox(
+            "Answer mode",
+            options=list(MODE_LABELS),
+            format_func=MODE_LABELS.get,
+            key=K.KEY_AGENT_MODE,
+            help="Auto route lets the agent choose a tool. Other modes use the selected tool directly.",
         )
-
-        # Map label back to key
-        for key, label in mode_options.items():
-            if label == selected_label:
-                st.session_state[K.KEY_AGENT_MODE] = key
-                break
+        mode = st.session_state[K.KEY_AGENT_MODE]
+        hints = {
+            "auto": "The agent chooses a tool for each question.",
+            "rag": "Answers from your active PDFs. Add documents below.",
+            "sql": "Ask a connected SQLite database in plain language.",
+            "web": "Search public web evidence. No LLM required.",
+            "chat": "Talk directly with your selected model.",
+        }
+        st.caption(hints[mode])
 
     @classmethod
     def _render_pdf_section(cls) -> None:
         """Render PDF file uploader and processing controls."""
-        st.markdown("#### 📄 PDF Knowledge Base")
 
         embedding_provider = st.session_state.get(K.KEY_EMBEDDING_PROVIDER, "huggingface")
         model_selected = st.session_state.get(K.KEY_LLM_MODEL)
@@ -254,14 +184,14 @@ class SidebarRenderer:
             if active is None or active.batch_identity != current_digest:
                 st.session_state[K.KEY_UNSUBMITTED_FILES] = True
 
-        col1, col2 = st.columns([3, 1])
+        col1, col2 = st.columns([2, 1])
         submitted = col1.button(
-            "⚡ Process PDFs",
+            "Process PDFs",
             disabled=(not uploaded_files or not model_selected),
             use_container_width=True,
             type="primary",
         )
-        cleared = col2.button("🗑️", help="Clear PDF knowledge base")
+        cleared = col2.button("Clear", help="Clear PDF knowledge base", key="clear_pdfs")
 
         if submitted and uploaded_files:
             cls._process_pdfs(uploaded_files, embedding_provider)
@@ -273,23 +203,21 @@ class SidebarRenderer:
         stored_vector_store = st.session_state.get(K.KEY_VECTOR_STORE)
         stored_pdf_names = st.session_state.get(K.KEY_PDF_NAMES, [])
         if stored_vector_store and stored_pdf_names:
-            with st.expander(f"📎 {len(stored_pdf_names)} file(s) loaded", expanded=False):
+            with st.expander(f"{len(stored_pdf_names)} active file(s)", expanded=False):
                 for name in stored_pdf_names:
-                    st.markdown(f"- `{name}`")
+                    st.text(name)
 
         if st.session_state.get(K.KEY_UNSUBMITTED_FILES):
             st.warning(
-                "📋 New files uploaded. Click **⚡ Process PDFs** to activate them.",
+                "📋 New files uploaded. Click **Process PDFs** to activate them.",
                 icon="⚠️",
             )
 
     @classmethod
     def _render_sql_section(cls) -> None:
         """Render SQL database connection panel."""
-        st.markdown("#### 🗄️ SQL Database")
         st.caption(
-            "SQLite only, read-only. Custom files require operator-configured "
-            "SQL_ALLOWED_ROOTS. Remote databases are not supported."
+            "Explore the sample music store or connect an approved SQLite file. All queries are read-only."
         )
 
         use_sample = st.checkbox(
@@ -306,82 +234,64 @@ class SidebarRenderer:
                 value=st.session_state.get(K.KEY_DB_URI, ""),
                 placeholder="sqlite:////absolute/approved/data.db",
                 type="password",
-                help="Existing SQLite files in approved directories only. No URI parameters.",
+                help="Existing SQLite files only. The operator must approve directories with SQL_ALLOWED_ROOTS. No URI parameters.",
             )
 
         col1, col2 = st.columns(2)
-        if col1.button("🔗 Connect", use_container_width=True):
+        if col1.button("Connect", use_container_width=True):
             cls._connect_database(db_uri)
 
-        if col2.button("✖ Disconnect", use_container_width=True):
+        if col2.button("Disconnect", use_container_width=True):
             cls._disconnect_database()
 
         # Show connected tables
         if st.session_state.get(K.KEY_DB_CONNECTED):
             tables = st.session_state.get(K.KEY_DB_TABLES, [])
-            with st.expander(f"📊 Schema ({len(tables)} tables)", expanded=False):
-                for table in tables:
-                    st.markdown(f"- `{table}`")
+            with st.expander(f"Schema ({len(tables)} tables)", expanded=False):
+                st.text("\n".join(tables))
 
     @staticmethod
     def _render_utilities_section() -> None:
         """Render utility action buttons."""
-        st.markdown("#### 🛠️ Utilities")
-
-        col1, col2, col3 = st.columns(3)
-
-        # Callbacks run before widget creation, so Reset can replace widget state.
+        st.markdown("#### Conversation")
+        col1, col2 = st.columns(2)
+        has_messages = bool(st.session_state.get(K.KEY_CHAT_MESSAGES))
         col1.button(
-            "🔄 Reset",
+            "Undo",
             use_container_width=True,
-            help="Full application reset",
-            on_click=SidebarRenderer._reset_all,
+            disabled=not has_messages,
+            help="Remove the last question and reply",
+            on_click=K.undo_last_message,
         )
         col2.button(
-            "🧹 Clear",
+            "Clear chat",
             use_container_width=True,
+            disabled=not has_messages,
             help="Clear visible chat and model history",
-            on_click=SessionStateManager.reset_chat,
+            on_click=K.reset_chat,
         )
-        col3.button(
-            "↩️ Undo",
+        st.button(
+            "Reset workspace",
             use_container_width=True,
-            help="Remove the last question and reply",
-            on_click=SessionStateManager.undo_last_message,
-        )
-
-        # Developer mode toggle
-        st.checkbox(
-            "🔬 Developer Mode",
-            key=K.KEY_DEVELOPER_MODE,
-            help="Show debug info: session ID, active tool, and safe failure codes.",
+            help="Clear chat, remove the active PDF index, disconnect SQLite, and restore settings.",
+            on_click=SidebarRenderer._reset_all,
         )
 
     @staticmethod
     def _render_status_metrics() -> None:
-        """Render live status metrics at the bottom of the sidebar."""
-        provider = st.session_state.get(K.KEY_LLM_PROVIDER, "—")
-        model = st.session_state.get(K.KEY_LLM_MODEL, "—") or "—"
-        has_docs = st.session_state.get(K.KEY_VECTOR_STORE) is not None
-        has_db = st.session_state.get(K.KEY_DB_CONNECTED, False)
-        last_tool = st.session_state.get(K.KEY_ACTIVE_TOOL, "—")
-        msg_count = len(st.session_state.get(K.KEY_CHAT_MESSAGES, []))
-
-        st.markdown("#### 📊 System Status")
-        col1, col2 = st.columns(2)
-        col1.metric("🔌 Provider", provider.capitalize())
-        col2.metric("💬 Messages", msg_count)
-
-        col3, col4 = st.columns(2)
-        col3.metric("📄 Docs", "✅" if has_docs else "❌")
-        col4.metric("🗄️ DB", "✅" if has_db else "❌")
-
-        st.caption(f"🏷️ Model: `{model[:25]}`")
-        st.caption(f"🔧 Last tool: `{last_tool}`")
-
+        """Keep implementation diagnostics out of the everyday workspace."""
+        messages = st.session_state.get(K.KEY_CHAT_MESSAGES, [])
+        st.caption(f"{len(messages) // 2} conversation turns · this session only")
+        st.text(f"Model: {st.session_state.get(K.KEY_LLM_MODEL) or 'Not selected'}")
+        st.caption("Chat and active source handles are not restored after a new session.")
+        st.checkbox(
+            "Developer mode",
+            key=K.KEY_DEVELOPER_MODE,
+            help="Show session ID, last tool, and safe failure codes.",
+        )
         if st.session_state.get(K.KEY_DEVELOPER_MODE):
-            session_id = st.session_state.get(K.KEY_SESSION_ID, "?")
-            st.caption(f"🆔 Session: `{session_id}`")
+            st.text(f"Session: {st.session_state[K.KEY_SESSION_ID]}")
+            st.text(f"Last tool: {st.session_state.get(K.KEY_ACTIVE_TOOL, '—')}")
 
     # ------------------------------------------------------------------
     # Private action handlers

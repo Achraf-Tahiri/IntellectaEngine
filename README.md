@@ -139,14 +139,14 @@ See [container configuration, mounts, and Ollama](docs/development.md#docker-wor
 
 ## Try it
 
-1. Upload [field-notes.pdf](examples/field-notes.pdf), click **Process PDFs**, and
-   choose **Force: RAG Documents**. Ask: “How many kits are in the pilot, and how
+1. Expand **Sources → PDF documents**, upload [field-notes.pdf](examples/field-notes.pdf), click **Process PDFs**, and
+   choose **PDF documents**. Ask: “How many kits are in the pilot, and how
    long can each be borrowed?” Then ask: “What is the pilot's total budget?”
    The latter is deliberately absent.
-2. Select **Use Chinook sample database**, click **Connect**, choose
-   **Force: SQL Database**, and ask: “Which three billing countries have the
+2. Expand **Sources → SQLite database**, select **Use Chinook sample database**, click **Connect**, choose
+   **SQLite database**, and ask: “Which three billing countries have the
    highest invoice totals?”
-3. With network access, choose **Force: Web Research** and enter a public-topic
+3. With network access, choose **Web research** and enter a public-topic
    search such as “SQLite window functions documentation”. Live web results vary.
 
 [Reference facts and SQL](examples/README.md) are verified fixture answers, not

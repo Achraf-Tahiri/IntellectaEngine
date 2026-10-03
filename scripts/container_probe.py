@@ -95,7 +95,7 @@ def main():
     assert config.get_option("server.enableCORS") is True
     assert config.get_option("server.enableXsrfProtection") is True
     assert config.get_option("browser.gatherUsageStats") is False
-    assert config.get_option("theme.primaryColor") == "#8B5CF6"
+    assert config.get_option("theme.primaryColor") == "#3B82F6"
     assert config.get_option("server.address") == "0.0.0.0"
     assert config.get_option("server.port") == 8501
     assert config.get_option("server.headless") is True

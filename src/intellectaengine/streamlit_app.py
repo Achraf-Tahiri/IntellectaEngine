@@ -12,7 +12,7 @@ Execution order:
     2. ``apply_global_styles()`` — Inject CSS design system.
     3. ``SessionStateManager.initialise()`` — Bootstrap session state.
     4. ``SidebarRenderer.render()`` — Render full sidebar configuration.
-    5. ``render_header()``    — Render the animated hero banner.
+    5. ``render_header()``    — Render the workspace status header.
     6. ``ChatInterface.render()`` — Render the conversational UI.
 
 Run:
@@ -69,7 +69,7 @@ def main() -> None:
     with st.sidebar:
         SidebarRenderer.render()
 
-    # Step 5: Render the animated hero header
+    # Step 5: Render the workspace status header
     render_header()
 
     # Step 6: Render the full conversational chat interface

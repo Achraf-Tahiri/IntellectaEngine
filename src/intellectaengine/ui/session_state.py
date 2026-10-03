@@ -85,6 +85,7 @@ class SessionStateManager:
     KEY_AGENT_MODE: str = "agent_mode"  # 'auto' | 'rag' | 'sql' | 'web' | 'chat'
 
     # UI state
+    KEY_CHAT_DRAFT: str = "chat_draft"
     KEY_SHOW_SOURCES: str = "show_sources"
     KEY_DEVELOPER_MODE: str = "developer_mode"
 
@@ -187,6 +188,7 @@ class SessionStateManager:
         Example:
             >>> SessionStateManager.reset_chat()
         """
+        st.session_state.pop(cls.KEY_CHAT_DRAFT, None)
         memory = st.session_state.get(cls.KEY_MEMORY)
         if memory is not None:
             memory.clear()
