@@ -6,7 +6,7 @@ searches. There is no scripted provider, fake answer, mock UI, or product demo m
 
 ## Browser captures
 
-![Real application startup with no credentials](screenshots/overview.png)
+![Real application startup with no credentials](screenshots/workspace-overview.png)
 
 *Overview: normal startup, compact source/settings panels, editable example prompts,
 and session-derived status. “Model setup required” reflects missing credentials;
@@ -143,6 +143,7 @@ A three-minute sequence:
 | SQL reference regression | Exact analytical statements through the native read-only policy | Model-generated SQL quality |
 | Scripted executor tests in the existing suite | Real ReAct/tool-calling plumbing with scripted model responses | A live inference demonstration |
 
-Hosted GitHub Actions and live-provider demonstrations remain unverified. The
-completed [publication review](release-readiness.md) records conditional readiness
-and remaining publication gates; these assets do not constitute publication clearance.
+See [GitHub Actions](https://github.com/Achraf-Tahiri/IntellectaEngine/actions) for
+current automated results. Live-provider demonstrations remain unverified. The
+[publication review](release-readiness.md) records the historical release audit;
+these captures establish only the browser behavior described above.

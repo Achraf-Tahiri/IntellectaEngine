@@ -40,7 +40,7 @@ const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
     await page.getByRole('button', { name: 'Reset workspace', exact: true }).click();
     await page.waitForTimeout(1000); // Settle the reset rerun and native layout.
     const output = name => path.resolve(__dirname, '../docs/screenshots', name);
-    await page.screenshot({ path: output('overview.png'), animations: 'disabled' });
+    await page.screenshot({ path: output('workspace-overview.png'), animations: 'disabled' });
     await page.getByText('SQLite database', { exact: true }).click();
     const sample = page.getByRole('checkbox', { name: 'Use Chinook sample database', exact: true });
     await page.getByText('Use Chinook sample database', { exact: true }).click();

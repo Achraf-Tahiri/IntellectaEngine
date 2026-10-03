@@ -2,15 +2,41 @@
 
 **Agentic AI Platform & Multi-Source RAG** — a personal engineering portfolio project.
 
-Ask questions across PDFs, a local SQLite database, and public web evidence in one
-Streamlit workspace. For example, review a project brief, explore sample sales
-figures, and research a related topic without switching applications. Choose a
-specific tool or let a ReAct agent route the question.
+**Your sources. One conversation.** Explore PDFs, query a local SQLite database,
+and research the public web in a single Streamlit workspace. Choose a tool with
+**Answer mode**, or let the ReAct agent route your question.
 
-![Actual IntellectaEngine startup screen](docs/screenshots/overview.png)
+![IntellectaEngine redesigned dark workspace with source controls and editable example prompts](docs/screenshots/workspace-overview.png)
 
-*Real Chromium capture with empty credentials; no model inference or scripted
-answers. [Capture provenance and walkthrough](docs/demo.md).*
+*The current dark-and-blue workspace: compact source controls, model settings,
+source status, and editable example prompts. Real browser capture with empty
+credentials; no model inference or scripted answers.
+[Capture details and walkthrough](docs/demo.md).*
+
+## Explore the workspace
+
+| Control | What it does |
+| --- | --- |
+| **Answer mode** | Choose Auto route, PDF documents, SQLite database, Web research, or Direct chat. |
+| **Sources** | Upload and process PDFs, or connect the bundled Chinook sample or an approved SQLite file. |
+| **Model settings** | Select your LLM provider, edit the model identifier, and choose an embedding provider. |
+| **Example prompts** | Fill the input with a starting question. Review or edit it, then send explicitly. |
+| **Conversation** | Undo the last turn, clear chat, or reset the workspace. |
+
+The status bar reflects the current session's sources and model configuration.
+It does not claim that a provider has been tested or is reachable. Retrieved PDF
+references expand beneath answers and identify the context supplied to the model.
+The layout adapts to narrow screens with stacked prompt cards and a collapsible sidebar.
+
+<details>
+<summary>See the connected Chinook sample database</summary>
+
+![Read-only Chinook connection with its eleven-table schema](docs/screenshots/chinook-schema.png)
+
+*Real schema discovery from the bundled sample database; no generated SQL answer
+or live model call is shown.*
+
+</details>
 
 ## Capabilities and engineering
 
@@ -139,12 +165,13 @@ See [container configuration, mounts, and Ollama](docs/development.md#docker-wor
 
 ## Try it
 
-1. Expand **Sources → PDF documents**, upload [field-notes.pdf](examples/field-notes.pdf), click **Process PDFs**, and
-   choose **PDF documents**. Ask: “How many kits are in the pilot, and how
+1. Expand **Sources → PDF documents**, upload
+   [field-notes.pdf](examples/field-notes.pdf), click **Process PDFs**, and choose
+   **PDF documents** in **Answer mode**. Ask: “How many kits are in the pilot, and how
    long can each be borrowed?” Then ask: “What is the pilot's total budget?”
    The latter is deliberately absent.
-2. Expand **Sources → SQLite database**, select **Use Chinook sample database**, click **Connect**, choose
-   **SQLite database**, and ask: “Which three billing countries have the
+2. Expand **Sources → SQLite database**, select **Use Chinook sample database**,
+   click **Connect**, choose **SQLite database** in **Answer mode**, and ask: “Which three billing countries have the
    highest invoice totals?”
 3. With network access, choose **Web research** and enter a public-topic
    search such as “SQLite window functions documentation”. Live web results vary.
@@ -178,10 +205,12 @@ is SQLite-only. In-process limits are not hostile-file sandboxes or hard
 cancellation of every provider call. Jina controls its own origin resolution and
 redirects. Retrieved references identify context locations, not claim verification.
 
-Offline checks and local Docker smoke checks have passed. Browser evidence covers
-startup and sample connection only; live providers, routing/retrieval quality,
-and hosted GitHub Actions remain unverified. The completed [publication review](docs/release-readiness.md)
-records conditional readiness and remaining publication gates.
+Browser checks cover desktop/mobile layout, editable prompt drafts, missing-key
+failure and undo, and sample database connection controls. The UI redesign passed
+155 targeted offline tests. See [GitHub Actions](https://github.com/Achraf-Tahiri/IntellectaEngine/actions)
+for current automated results and the [demo guide](docs/demo.md) for validation scope.
+Live providers and routing/retrieval quality remain unverified. The
+[publication review](docs/release-readiness.md) records the historical release audit.
 
 Code and original fictional examples use the [MIT license](LICENSE). Chinook
 retains its upstream license and attribution in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).

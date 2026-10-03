@@ -83,7 +83,7 @@ def inspect(wheel, sdist):
             "examples/field-notes.txt",
             "examples/field-notes.pdf",
             "examples/chinook-queries.json",
-            "docs/screenshots/overview.png",
+            "docs/screenshots/workspace-overview.png",
             "docs/screenshots/chinook-schema.png",
             "scripts/capture_demo.cjs",
         } | {"src/" + name for name in payload}

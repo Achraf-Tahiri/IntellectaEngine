@@ -90,7 +90,7 @@ def fixture_context(directory):
         "examples/field-notes.pdf",
         "examples/field-notes.txt",
         "examples/chinook-queries.json",
-        "docs/screenshots/overview.png",
+        "docs/screenshots/workspace-overview.png",
         "docs/screenshots/chinook-schema.png",
         "scripts/capture_demo.cjs",
     ]
